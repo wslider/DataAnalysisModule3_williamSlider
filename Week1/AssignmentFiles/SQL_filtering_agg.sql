@@ -70,9 +70,25 @@ order by unique_customers desc;
 -- Q8) Which day of week has the highest number of PAID orders?
 --     Return (day_name, orders_count). Hint: DAYNAME(order_datetime). Return ties if any.
 
+with daily_counts as (
+	select DAYNAME(order_datetime) as day_name, count(order_id) as orders_count 
+	from orders
+    where status = 'paid'
+	group by day_name )
+
+select day_name, orders_count from daily_counts
+where orders_count = (select MAX(orders_count ) from daily_counts)
+group by day_name
+order by day_name limit 2;
 
 -- Q9) Show the calendar days whose total orders (any status) exceed 3.
 --     Use HAVING. Return (order_date, orders_count).
+
+select date(order_datetime) as order_date, count(order_id) as order_count from orders
+group by order_date
+having order_count > 3
+order by order_date; 
+
 
 -- Q10) Per store, list payment_method and the number of PAID orders.
 --      Return (store_id, payment_method, paid_orders_count).
