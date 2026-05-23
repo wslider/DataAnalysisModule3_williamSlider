@@ -30,15 +30,42 @@ group by date(order_datetime);
 -- Q4) What is the average number of items per PAID order?
 --     Use a subquery or CTE over order_items filtered by order_id IN (...).
 
+select avg(total_items) as average_qty
+from (
+    select sum(quantity) as total_items
+    from order_items 
+    where order_id in ( select order_id from orders where status = 'paid') 
+    group by order_id
+) as subquery;
+
+
 -- Q5) Which products (by product_id) have sold the most units overall across all stores?
 --     Return (product_id, total_units), sorted desc.
-
+select product_id, sum(quantity) as total_units
+from order_items
+group by product_id
+order by total_units desc;
+    
 -- Q6) Among PAID orders only, which product_ids have the most units sold?
 --     Return (product_id, total_units_paid), sorted desc.
 --     Hint: order_id IN (SELECT order_id FROM orders WHERE status='paid').
 
+select product_id, sum(quantity) as total_units_paid
+from order_items
+where order_id in (select order_id from orders where status='paid')
+group by product_id
+order by total_units_paid desc;
+
+
 -- Q7) For each store, how many UNIQUE customers have placed a PAID order?
 --     Return (store_id, unique_customers) using only the orders table.
+
+select store_id, count(distinct customer_id) as unique_customers
+from orders
+where status = 'paid'
+group by store_id
+order by unique_customers desc; 
+ 
 
 -- Q8) Which day of week has the highest number of PAID orders?
 --     Return (day_name, orders_count). Hint: DAYNAME(order_datetime). Return ties if any.
