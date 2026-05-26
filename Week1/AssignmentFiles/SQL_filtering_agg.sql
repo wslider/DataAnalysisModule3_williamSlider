@@ -84,20 +84,46 @@ order by day_name limit 2;
 -- Q9) Show the calendar days whose total orders (any status) exceed 3.
 --     Use HAVING. Return (order_date, orders_count).
 
-select date(order_datetime) as order_date, count(order_id) as order_count from orders
+select date(order_datetime) as order_date, count(order_id) as orders_count from orders
 group by order_date
-having order_count > 3
+having orders_count > 3
 order by order_date; 
 
 
 -- Q10) Per store, list payment_method and the number of PAID orders.
 --      Return (store_id, payment_method, paid_orders_count).
+select store_id, payment_method, count(payment_method) as paid_orders_count
+from orders
+where status = 'paid'
+group by store_id, payment_method
+order by store_id;
+
 
 
 -- Q11) Among PAID orders, what percent used 'app' as the payment_method?
 --      Return a single row with pct_app_paid_orders (0–100).
 
+select 
+	round ( 100.0 * app_payments / total_paid_orders, 0)
+    as pct_paid_orders 
+from (
+	select
+	count(*) as total_paid_orders, 
+    count(case when payment_method = 'app' then 1 end) as app_payments
+    from orders
+    where status = 'paid'
+) as subquery;
+
+
 -- Q12) Busiest hour: for PAID orders, show (hour_of_day, orders_count) sorted desc.
+
+select HOUR(order_datetime) as hour_of_day, count(order_id) as orders_count
+from orders 
+where status='paid' 
+group by hour_of_day
+order by orders_count desc;
+
+
 
 
 -- ================
