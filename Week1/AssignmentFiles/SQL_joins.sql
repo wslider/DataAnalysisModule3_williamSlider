@@ -6,13 +6,35 @@ USE coffeeshop_db;
 
 -- Q1) Join products to categories: list product_name, category_name, price.
 
+select p.name, c.name as category_name, p.price
+from products p
+inner join categories c
+on p.category_id = c.category_id
+order by p.name;
+
 -- Q2) For each order item, show: order_id, order_datetime, store_name,
 --     product_name, quantity, line_total (= quantity * products.price).
 --     Sort by order_datetime, then order_id.
 
+select o.order_id, o.order_datetime, s.name as store_name, p.name as product_name, (oi.quantity * p.price) as line_total
+from orders o 
+inner join order_items oi on o.order_id = oi.order_id
+inner join products p on oi.product_id = p.product_id
+inner join stores s on s.store_id = o.store_id
+order by o.order_datetime, o.order_id;
+
 -- Q3) Customer order history (PAID only):
 --     For each order, show customer_name, store_name, order_datetime,
 --     order_total (= SUM(quantity * products.price) per order).
+
+select o.order_id, c.first_name as customer_name, s.name as store_name, o.order_datetime, sum(oi.quantity * p.price) as order_total
+from orders o
+inner join order_items oi on oi.order_id = o.order_id
+inner join customers c on o.customer_id = c.customer_id
+inner join stores s on o.store_id = s.store_id
+inner join products p on p.product_id = oi.product_id
+where o.status = 'paid'
+group by o.order_id;
 
 -- Q4) Left join to find customers who have never placed an order.
 --     Return first_name, last_name, city, state.
