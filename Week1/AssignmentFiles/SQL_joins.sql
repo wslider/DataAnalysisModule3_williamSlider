@@ -39,6 +39,11 @@ group by o.order_id;
 -- Q4) Left join to find customers who have never placed an order.
 --     Return first_name, last_name, city, state.
 
+select c.first_name, c.last_name, c.city, c.state
+from customers c
+left join orders o on c.customer_id = o.customer_id
+where o.customer_id is null; 
+
 -- Q5) For each store, list the top-selling product by units (PAID only).
 --     Return store_name, product_name, total_units.
 --     Hint: Use a window function (ROW_NUMBER PARTITION BY store) or a correlated subquery.
