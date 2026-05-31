@@ -116,3 +116,24 @@ where
 
 Transcript:
 I was hired by a woman with a lot of money. I don't know her name but I know she's around 5'5" (65") or 5'7" (67"). She has red hair and she drives a Tesla Model S. I know that she attended the SQL Symphony Concert 3 times in December 2017.
+
+## Use clues in transcript to find out who hired him
+
+select * from person p
+left join drivers_license d
+on p.license_id = d.id
+left join income i
+on p.ssn = i.ssn
+left join facebook_event_checkin fb
+on p.id = fb.person_id
+  where 
+  d.height between 65 and 67
+  and d.hair_color = 'red'
+  and d.car_make = 'Tesla'
+  and d.car_model = 'Model S' 
+  and d.gender = 'female'
+  and fb.event_name like '%SQL Symphony Concert%';
+
+
+Answer: 
+  Miranda Priestly
