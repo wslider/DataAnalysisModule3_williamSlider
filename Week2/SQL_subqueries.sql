@@ -32,6 +32,21 @@ where p2.category_id = p.category_id
 --     List customers who have purchased at least one product in the 'Merch' category.
 --     Return customer_id, first_name, last_name.
 --     Hint: Use a subquery to find the category_id for 'Merch', then a subquery to find product_ids.
+ 
+
+select distinct c.customer_id, c.first_name, c.last_name
+from customers c
+inner join orders o on o.customer_id = c.customer_id 
+inner join order_items oi on oi.order_id = o.order_id
+where oi.product_id in (
+	select product_id from products
+    where category_id =  ( 
+    select category_id
+    from categories
+    where name = 'Merch'
+    )
+);
+
 
 -- Q4) List subquery (NOT IN / anti-join logic):
 --     List products that have never been ordered (their product_id never appears in order_items).
