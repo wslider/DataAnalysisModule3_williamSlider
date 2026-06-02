@@ -8,10 +8,25 @@ USE coffeeshop_db;
 --     List products priced above the overall average product price.
 --     Return product_id, name, price.
 
+select product_id, name, price from products p
+where p.price > (select AVG(price) from products)
+order by price desc; 
+
 -- Q2) Scalar subquery (MAX within category):
 --     Find the most expensive product(s) in the 'Beans' category.
 --     (Return all ties if more than one product shares the max price.)
 --     Return product_id, name, price.
+
+select p.product_id, p.name, p.price 
+from products p 
+inner join categories c 
+on p.category_id = c.category_id
+where c.name = 'Beans' and p.price = (
+select max(price)
+from products p2
+where p2.category_id = p.category_id
+);
+
 
 -- Q3) List subquery (IN with nested lookup):
 --     List customers who have purchased at least one product in the 'Merch' category.
