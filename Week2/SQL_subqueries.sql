@@ -52,9 +52,39 @@ where oi.product_id in (
 --     List products that have never been ordered (their product_id never appears in order_items).
 --     Return product_id, name, price.
 
+select p.product_id, p.name, p.price
+from products p
+	where p.product_id not in (
+	select oi.product_id
+	from order_items oi
+	);
+
+
 -- Q5) Table subquery (derived table + compare to overall average):
 --     Build a derived table that computes total_units_sold per product
 --     (SUM(order_items.quantity) grouped by product_id).
 --     Then return only products whose total_units_sold is greater than the
 --     average total_units_sold across all products.
---     Return product_id, product_name, total_units_sold.
+--     Return product_id, product_name, total_units_sold
+
+select 
+	sub.product_id, 
+	sub.total_units_sold, 
+	p.name as product_name 
+from (
+	select
+		product_id, 
+		sum(quantity) as total_units_sold
+	from order_items 
+    group by product_id
+) as sub
+inner join
+products p on sub.product_id = p.product_id
+	where sub.total_units_sold > (
+		select avg(total_units_sold)
+		from ( 
+		select sum(quantity) as total_units_sold
+		from order_items
+		group by product_id
+		) as avg_total
+	);
