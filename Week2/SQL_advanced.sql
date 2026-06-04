@@ -18,6 +18,31 @@ USE coffeeshop_db;
 -- for THAT SAME store (correlated subquery).
 -- Sort by store_name, then order_total DESC.
 
+select 
+	o.order_id, 
+    concat(c.first_name, ' ', c.last_name) as customer_name, 
+    s.name as store_name, o.order_datetime, 
+    sum(oi.quantity * p.price) as order_total
+from orders o 
+join stores s on s.store_id = o.store_id
+join order_items oi on oi.order_id = o.order_id
+join products p on oi.product_id = p.product_id 
+join customers c on o.customer_id = c.customer_id
+where o.status = 'paid'
+group by o.order_id, o.order_datetime, s.name, c.first_name, c.last_name
+having sum(oi.quantity * p.price) > (
+	select avg(order_total_sub)
+    from ( 
+    select sum(oi2.quantity * p2.price) as order_total_sub
+    from orders o2
+    join order_items oi2 on oi2.order_id = o2.order_id
+    join products p2 on oi2.product_id = p2.product_id
+    where o2.status = 'paid'
+		-- and o2.store_id = o.store_id  
+	group by o2.order_id ) as sub
+    )
+order by store_name, order_total desc;
+
 -- =========================================================
 -- Q2) CTE: Daily revenue and 3-day rolling average (PAID only)
 -- =========================================================
