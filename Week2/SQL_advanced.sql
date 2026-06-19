@@ -54,6 +54,35 @@ order by store_name, order_total desc;
 -- Use a window function for the rolling average.
 -- Sort by store_name, order_date.
 
+with daily_store_revenue as (
+	select 
+		sum(oi.quantity * p.price) as revenue_day, 
+        date(o.order_datetime) as order_date, 
+        s.name as store_name
+    from 
+        orders o
+	join stores s on o.store_id = s.store_id
+    join order_items oi on o.order_id = oi.order_id 
+    join products p on oi.product_id = p.product_id
+	where o.status = 'paid'
+	group by 
+		o.store_id,
+        o.order_datetime
+)
+select
+	revenue_day,
+    order_date, 
+    store_name,
+    avg(revenue_day) over (
+		partition by store_name
+        order by order_date
+        rows between 2 preceding and current row
+		) as rolling_3_day_avg
+from daily_store_revenue
+order by
+	store_name, 
+    order_date;
+
 -- =========================================================
 -- Q3) Window function: Rank customers by lifetime spend (PAID only)
 -- =========================================================
@@ -62,6 +91,35 @@ order by store_name, order_total desc;
 --         spend_rank (DENSE_RANK by total_spend DESC).
 -- Also include percent_of_total = customer's total_spend / total spend of all customers.
 -- Sort by total_spend DESC.
+
+-- calculate total spend per customer
+with customer_spend as (
+select
+	c.customer_id, 
+    concat(c.first_name, ' ', c.last_name) as customer_name,
+    sum(oi.quantity * p.price) as total_spend
+from customers c 
+join orders o on c.customer_id = o.customer_id
+join order_items oi on o.order_id = oi.order_id
+join products p on oi.product_id = p.product_id
+where o.status = 'paid' 
+group by c.customer_id)
+
+select 
+	customer_name, 
+	total_spend, 
+	dense_rank() 
+		over (
+        order by total_spend desc 
+		) as spend_rank,
+	round(
+		total_spend / sum(total_spend) over() * 100, 2
+		) as percent_of_total
+from customer_spend 
+order by total_spend desc
+;
+
+
 
 -- =========================================================
 -- Q4) CTE + window: Top product per store by revenue (PAID only)
